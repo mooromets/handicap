@@ -1,0 +1,1 @@
+add_library(db sqlite3.c)
