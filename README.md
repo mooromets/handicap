@@ -1,2 +1,2 @@
 # handicap
-Football results' review with a little help of math
+Football results' review with a little help from math
