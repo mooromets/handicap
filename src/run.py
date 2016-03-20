@@ -6,13 +6,12 @@ import mongoInsertData
 
 #open MongoDB connection
 
-if len(sys.argv) < 3: 
-	print "user and password must be specified"
-	exit()
-hm = mongoConnect.HandiMongo(sys.argv[1], sys.argv[2])
+collectionName = sys.argv[2] if len(sys.argv)>2 else 'games'
+
+hm = mongoConnect.HandiMongo(collectionName)
 
 #open input file
 
-csvName = sys.argv[3] if len(sys.argv)>3 else 'input.csv'
+csvName = sys.argv[1] if len(sys.argv)>1 else 'input.csv'
 
-print mongoInsertData.insertFileIntoDB(csvName, hm.collTest)
+print (mongoInsertData.insertFileIntoDB(csvName, hm.collTest))
