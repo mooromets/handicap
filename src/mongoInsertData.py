@@ -1,5 +1,6 @@
 import csv
 import pymongo
+from datetime import datetime
 
 def insertFileIntoDB (inFilename, collection):
 	csvFile = open(inFilename, 'r')
@@ -9,7 +10,7 @@ def insertFileIntoDB (inFilename, collection):
 	csvReader = csv.DictReader( csvFile, header)
 	for row in csvReader:
 		data = {
-				"gameDate" : row['Date'],
+				"gameDate" : datetime.strptime(row['Date'], "%d/%m/%y"),  #  datetime(*time.strptime(row['Date'], "%d/%m/%y")[:6] ) ,
 				"competition" : row['Div'],
 				"referee" : row['Referee'],
 				"teams" : [row['HomeTeam'], row['AwayTeam']],
