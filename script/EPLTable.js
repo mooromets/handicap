@@ -1,8 +1,8 @@
-// HOME GAMES table
+//table
 cursor = db.games.aggregate
 			( [ 
 				//match EPL games 
-				{ $match: { competition : "E0"} }
+				{ $match: { competition: "E0", $and: [ { gameDate: { $gt: ISODate("2015-08-01") } },  { gameDate: { $lt: ISODate("2016-06-01") }  } ] } }
 				// unwinding every team is one row now
 				,{ $unwind: { path: "$teams", includeArrayIndex: "HomeAway" } }
 				// count games : Played, Won, Drawn, Lost; calculates goals : For, Against 
