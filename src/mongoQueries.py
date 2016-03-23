@@ -6,7 +6,7 @@ def matchLeagueTerm(league, dateStart, dateEnd):
 	return 	{ "$match":	{ 
 							"competition": league, 
 							"$and": [ 
-									{ "gameDate": { "$gt": dateStart } }, 
+									{ "gameDate": { "$gte": dateStart } }, 
 									{ "gameDate": { "$lt": dateEnd } } 
 									] 
 						} 
@@ -98,7 +98,7 @@ def projectTableView(ground="Ground"):
 						"L" : 1,
 						"F" : 1,
 						"A" : 1,
-						"GD" : { "$subtract": [ "$GS", "$GC" ] },
+						"GD" : { "$subtract": [ "$F", "$A" ] },
 						"Pts" : { "$sum" : { "$add": [ { "$multiply" : [ "$W", 3 ] }, "$D" ] } } 
 					}
 			}
@@ -110,6 +110,6 @@ def pipeLeagueTable(league, start, end, isHome):
 				matchLeagueTerm(league, start, end),
 				{ "$unwind": { "path": "$teams", "includeArrayIndex": "Ground" } },
 				{ "$match": {"Ground": 0 if isHome else 1 } },
-				groupResultsAndGoals(True),
+				groupResultsAndGoals(isHome),
 				projectTableView()
 			]
