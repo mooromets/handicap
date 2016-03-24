@@ -19,8 +19,8 @@ hm = mongoConnect.HandiMongo(collectionName)
 #print (mongoInsertData.insertFileIntoDB(csvName, hm.collTest))
 
 PL = "E0"
-start = datetime(2015, 9, 14)
-end = datetime(2015, 9, 15)
+start = datetime(2015, 10, 18)
+end = datetime(2016, 6, 1)
 
 queryFind = { 
 	"competition": "E0",
@@ -33,11 +33,19 @@ queryFind = {
 
 check = list(hm.collTest.find(queryFind))
 
-for doc in check:
-	print (doc)
+#for doc in check: print (doc)
 	
 fp = FormPlayer(hm)	
-	
-walk = Walker(check, fp, True)
 
+results = []
 
+print ("Start Walker")
+
+walk = Walker(check, fp, results)
+
+print ("Walker ends")
+
+print(len(results))
+
+for doc in results: 
+	print (doc["PtsDiff"], doc["Res"], doc["odds"][doc["Res"]], doc["odds"]["H"], doc["odds"]["D"], doc["odds"]["A"])
