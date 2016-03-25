@@ -2,41 +2,65 @@ import mongoQueries
 from player import Player
 from utils import printTable
 from datetime import datetime
+from mongoQueries import matchLeagueTerm
 
 class FormPlayer (Player) :
 	def __init__ (self, mongoConnection):
 		Player.__init__(self, mongoConnection)
-
-	def play (self, match, results):
+		self.mLastContextUpdate = datetime(1990, 1, 1)
+		self.mLastGameDay = datetime(1990, 1, 1)
 		#temporary hard-code this season and league
-		PL = "E0"
-		startPL = datetime(2015, 8, 1)
-		endPL = datetime(2016, 6, 1)
+		self.mPL = "E0"
+		self.mStartPL = datetime(2015, 8, 1)
+		self.mEndPL = datetime(2016, 6, 1)
+		self.mTeamsList = list(mongoConnection.collTest.aggregate([
+							matchLeagueTerm(self.mPL, self.mStartPL, self.mEndPL),
+							{ "$limit" : 50 },
+							{ "$unwind": "$teams"},
+							{ "$group" : { "_id": "$teams"}}
+							]))
+		print("fp inited")
 		
-		endDate = match['gameDate'] if match['gameDate'] < endPL else endPL
+	def prepareContext(self, match):
+		needUpdate = True if (match['gameDate'] - self.mLastGameDay).days > 1 else False
 		
-		#prepare context
-		
-		tableCollection = "leagueTable"
-		self.myMongoConn.db[tableCollection].drop()
-		formCollection = "leagueForm"
-		self.myMongoConn.db[formCollection].drop()
-		
-		#home games
-		pipePLHome = mongoQueries.pipeLeagueTable(PL, startPL, endDate, True)
-		pipePLHome.append( { "$out" : tableCollection } )
-		self.myMongoConn.collTest.aggregate(pipePLHome) 
+		self.mLastGameDay = match['gameDate']
 
-		#away games
-		pipePLAway = mongoQueries.pipeLeagueTable(PL, startPL, endDate, False)
-		for doc in list(self.myMongoConn.collTest.aggregate(pipePLAway)):	
-			self.myMongoConn.db[tableCollection].insert_one(doc)
+		if (match['gameDate'] - self.mLastContextUpdate).days > 3 : #many days of consecutive matches ?
+			needUpdate = True
 		
-		#debug printTable(self.myMongoConn.db[tableCollection])
+		if needUpdate :
+			#print ("Update : ", match['gameDate'])
+			self.mLastContextUpdate = match['gameDate']
+		
+			endDate = match['gameDate'] if match['gameDate'] < self.mEndPL else self.mEndPL	
+			
+			self.mTableCollection = "leagueTable"
+			self.myMongoConn.db[self.mTableCollection].drop()
+			self.mFormCollection = "leagueForm"
+			self.myMongoConn.db[self.mFormCollection].drop()
+			#home games
+			pipePLHome = mongoQueries.pipeLeagueTable(self.mPL, self.mStartPL, endDate, True)
+			pipePLHome.append( { "$out" : self.mTableCollection } )
+			self.myMongoConn.collTest.aggregate(pipePLHome) 
+
+			#away games
+			pipePLAway = mongoQueries.pipeLeagueTable(self.mPL, self.mStartPL, endDate, False)
+			for doc in list(self.myMongoConn.collTest.aggregate(pipePLAway)):	
+				self.myMongoConn.db[self.mTableCollection].insert_one(doc)
+			
+			#debug printTable(self.myMongoConn.db[tableCollection])
+		
+		
+	def play (self, match, results):
+
+		self.prepareContext(match)
+		
+		endDate = match['gameDate'] if match['gameDate'] < self.mEndPL else self.mEndPL	
 		
 		#calculate form for both teams
 		#refactor this shit
-		matchTeamLimit = mongoQueries.matchLeagueTerm(PL, startPL, endDate)
+		matchTeamLimit = mongoQueries.matchLeagueTerm(self.mPL, self.mStartPL, endDate)
 		matchTeamLimit["$match"]["teams.0"] = match['teams'][0]
 
 		pipeStats = lambda isHome: [
@@ -52,7 +76,7 @@ class FormPlayer (Player) :
 		homeTeamFormDoc = list(self.myMongoConn.collTest.aggregate(pipeStats(True)))[0]
 #		for doc in list(self.myMongoConn.collTest.aggregate(pipeStats(True))): self.myMongoConn.db[formCollection].insert_one(doc)		
 		
-		matchTeamLimit = mongoQueries.matchLeagueTerm(PL, startPL, endDate)
+		matchTeamLimit = mongoQueries.matchLeagueTerm(self.mPL, self.mStartPL, endDate)
 		matchTeamLimit["$match"]["teams.1"] = match['teams'][1]
 		
 		awayTeamFormDoc = list(self.myMongoConn.collTest.aggregate(pipeStats(False)))[0]

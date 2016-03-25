@@ -41,12 +41,12 @@ fp = FormPlayer(hm)
 results = []
 
 print ("Start Walker")
-timer = time()
+timer = datetime.now()
 
 walk = Walker(check, fp, results)
 
 print ("Walker ends")
-print ("Lasted:", (time() - timer).microsecond )
+print ("Lasted:", ( datetime.now() - timer).microseconds )
 
 print(len(results))
 
