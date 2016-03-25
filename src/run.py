@@ -7,6 +7,7 @@ import mongoInsertData
 from formplayer import FormPlayer
 from walker import Walker
 from datetime import datetime
+from datetime import time
 
 #open MongoDB connection
 
@@ -40,10 +41,12 @@ fp = FormPlayer(hm)
 results = []
 
 print ("Start Walker")
+timer = time()
 
 walk = Walker(check, fp, results)
 
 print ("Walker ends")
+print ("Lasted:", (time() - timer).microsecond )
 
 print(len(results))
 
