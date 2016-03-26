@@ -29,6 +29,7 @@ class FormPlayerAccelerated (FormPlayer) :
 		accFormPonits = []
 		
 		for team in match['teams']:
+			#print (team)
 			teamIdx = match['teams'].index(team)
 			matchTeamLimit = mongoQueries.matchLeagueTerm(self.mPL, self.mStartPL, endDate)
 			matchTeamLimit["$match"]["teams." + str(teamIdx)] = team
@@ -45,13 +46,15 @@ class FormPlayerAccelerated (FormPlayer) :
 				oppIdx = 1 if teamIdx == 0 else 0
 				oppLeagueDoc = self.myMongoConn.db[self.mTableCollection].find_one( 
 						{ 
-							"Club": match['teams'][oppIdx],
+							"Club": doc['teams'][oppIdx],
 							"Ground": 'A'
 						} )
 				oppPPG = oppLeagueDoc['Pts'] / oppLeagueDoc['P']
 				formPoints[teamIdx] = formPoints[teamIdx] + self.points(teamIdx, doc["matchResult"]["fullTimeResult"])
 				accFormPonits[teamIdx] = accFormPonits[teamIdx] + self.points(teamIdx, doc["matchResult"]["fullTimeResult"]) * oppPPG
-		
+				#print (oppLeagueDoc['Club'], teamIdx, oppPPG, self.points(teamIdx, doc["matchResult"]["fullTimeResult"]))
+				
+			#print (accFormPonits[teamIdx])
 		
 		
 #		for doc in list(self.myMongoConn.collTest.aggregate(pipeStats(False))): self.myMongoConn.db[formCollection].insert_one(doc)	
@@ -60,10 +63,30 @@ class FormPlayerAccelerated (FormPlayer) :
 		#print (homeTeamFormDoc)
 		#print (awayTeamFormDoc)
 		
+		if match['matchResult']['fullTimeResult'] == 'D': 
+			finalRes = "bD"
+			resOdd = match['bets']['BetbrainAvgD']
+		elif match['matchResult']['fullTimeResult'] == 'H' and accFormPonits[0] > accFormPonits[1]:
+			finalRes = "cW"
+			resOdd = match['bets']['BetbrainAvgH']
+		elif match['matchResult']['fullTimeResult'] == 'A' and accFormPonits[1] > accFormPonits[0]:
+			finalRes = "cW"
+			resOdd = match['bets']['BetbrainAvgA']		
+		elif match['matchResult']['fullTimeResult'] == 'H' and accFormPonits[0] < accFormPonits[1]:
+			finalRes = "aL"
+			resOdd = match['bets']['BetbrainAvgH']
+		elif match['matchResult']['fullTimeResult'] == 'A' and accFormPonits[1] < accFormPonits[0]:
+			finalRes = "aL"
+			resOdd = match['bets']['BetbrainAvgA']	
+		else:
+			finalRes = "bD_unk"
+			resOdd = match['bets']['BetbrainAvgD']	
+		
 		results.append( { 
 							"PtsDiff": fabs (formPoints[0] - formPoints[1]),
 							"AccDiff": fabs (accFormPonits[0] - accFormPonits[1]),
-							"Res": match['matchResult']['fullTimeResult'], 
+							"Res": finalRes,
+							"WinOdd" : resOdd,
 							"odds": { 
 										"H": match['bets']['BetbrainAvgH'],
 										"D": match['bets']['BetbrainAvgD'],

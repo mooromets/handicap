@@ -30,7 +30,8 @@ check = list(hm.collTest.find(queryFind))
 
 #for doc in check: print (doc)
 	
-fp = FormPlayerAccelerated(hm)# FormPlayer(hm)	
+#fp = FormPlayerAccelerated(hm)
+fp = FormPlayer(hm)	
 
 results = []
 
@@ -45,4 +46,8 @@ print ("Lasted:", ( datetime.now() - timer).microseconds )
 print(len(results))
 
 for doc in results: 
-	print (doc["PtsDiff"], doc["AccDiff"], doc["Res"], doc["odds"][doc["Res"]], doc["odds"]["H"], doc["odds"]["D"], doc["odds"]["A"], doc["AccHome"], doc["AccAway"])
+	print (doc["PtsDiff"], 
+	#doc["AccDiff"], 
+	doc["Res"], doc["WinOdd"], doc["odds"]["H"], doc["odds"]["D"], doc["odds"]["A"], 
+	#doc["AccHome"], doc["AccAway"]
+	)

@@ -3,6 +3,7 @@ from player import Player
 from utils import printTable
 from datetime import datetime
 from mongoQueries import matchLeagueTerm
+from math import fabs
 
 class FormPlayer (Player) :
 	def __init__ (self, mongoConnection):
@@ -86,9 +87,29 @@ class FormPlayer (Player) :
 		#print (homeTeamFormDoc)
 		#print (awayTeamFormDoc)
 		
+		if match['matchResult']['fullTimeResult'] == 'D': 
+			finalRes = "bD"
+			resOdd = match['bets']['BetbrainAvgD']
+		elif match['matchResult']['fullTimeResult'] == 'H' and homeTeamFormDoc["Pts"] > awayTeamFormDoc["Pts"]:
+			finalRes = "cW"
+			resOdd = match['bets']['BetbrainAvgH']
+		elif match['matchResult']['fullTimeResult'] == 'A' and homeTeamFormDoc["Pts"] < awayTeamFormDoc["Pts"]:
+			finalRes = "cW"
+			resOdd = match['bets']['BetbrainAvgA']		
+		elif match['matchResult']['fullTimeResult'] == 'H' and homeTeamFormDoc["Pts"] < awayTeamFormDoc["Pts"]:
+			finalRes = "aL"
+			resOdd = match['bets']['BetbrainAvgH']
+		elif match['matchResult']['fullTimeResult'] == 'A' and homeTeamFormDoc["Pts"] > awayTeamFormDoc["Pts"]:
+			finalRes = "aL"
+			resOdd = match['bets']['BetbrainAvgA']	
+		else:
+			finalRes = "bD_unk"
+			resOdd = match['bets']['BetbrainAvgD']		
+		
 		results.append( { 
-							"PtsDiff": homeTeamFormDoc["Pts"] - awayTeamFormDoc["Pts"], 
-							"Res": match['matchResult']['fullTimeResult'], 
+							"PtsDiff": fabs (homeTeamFormDoc["Pts"] - awayTeamFormDoc["Pts"]), 
+							"Res": finalRes ,
+							"WinOdd" : resOdd,							
 							"odds": { 
 										"H": match['bets']['BetbrainAvgH'],
 										"D": match['bets']['BetbrainAvgD'],
