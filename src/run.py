@@ -2,6 +2,7 @@ import sys
 import mongoConnect
 
 from formplayer import FormPlayer
+from formPlayerAccelerated import FormPlayerAccelerated
 from walker import Walker
 from datetime import datetime
 from datetime import time
@@ -29,7 +30,7 @@ check = list(hm.collTest.find(queryFind))
 
 #for doc in check: print (doc)
 	
-fp = FormPlayer(hm)	
+fp = FormPlayerAccelerated(hm)# FormPlayer(hm)	
 
 results = []
 
@@ -44,4 +45,4 @@ print ("Lasted:", ( datetime.now() - timer).microseconds )
 print(len(results))
 
 for doc in results: 
-	print (doc["PtsDiff"], doc["Res"], doc["odds"][doc["Res"]], doc["odds"]["H"], doc["odds"]["D"], doc["odds"]["A"])
+	print (doc["PtsDiff"], doc["AccDiff"], doc["Res"], doc["odds"][doc["Res"]], doc["odds"]["H"], doc["odds"]["D"], doc["odds"]["A"], doc["AccHome"], doc["AccAway"])
